@@ -1,10 +1,13 @@
 """
 Serializer for the user api view
 """
-
 from rest_framework import serializers
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import (
+    get_user_model,
+    authenticate
+)
+from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -27,3 +30,31 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Create a new user with encrypted password"""
         return get_user_model().objects.create_user(**validated_data)
+
+
+class AuthTokenSerializer(serializers.Serializer):
+    """Serializer for auth token"""
+    email = serializers.EmailField(max_length=255)
+    password = serializers.CharField(
+        style={'input_type': 'password'},
+        trim_whitespace=False
+    )
+
+    def validate(self, attrs):
+        """"validate token"""
+        email = attrs.get('email')
+        password = attrs.get("password")
+        if not email or password is None:
+            raise serializers.ValidationError()
+
+        user = authenticate(
+            self.context.get('request'),
+            username=email,
+            password=password,
+        )
+        print("before check")
+        if not user:
+            raise NotAuthenticated()
+
+        attrs['user'] = user
+        return attrs
