@@ -7,7 +7,7 @@ from django.contrib.auth import (
     get_user_model,
     authenticate
 )
-from rest_framework.exceptions import   NotAuthenticated
+from rest_framework.exceptions import NotAuthenticated
 
 
 class UserSerializer(serializers.ModelSerializer):
